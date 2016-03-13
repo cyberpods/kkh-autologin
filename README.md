@@ -19,7 +19,6 @@ Automatically login into the Mikrotik RouterOS Authentication and access the pan
     $ chmod +rx kkh passfile
     $ vi passfile            # add your usernames and passwords
     
-    
 ## Features  
   1. Check status :  kkh status
   2. Log in        :  kkh login [username [password]]
