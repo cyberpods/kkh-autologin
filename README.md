@@ -1,9 +1,16 @@
 # kkh-autologin
 Automatically login into the Mikrotik RouterOS Authentication and access the panel along with some hacks using your favorite CLI
 
-## KKH AutoLogin
+### About
   KKH autologin is an open source CLI tool to automatically\nlogin to the network RouterOS authentication panel.
   This script automatically tries out all the passwords\nspecified into the passfile (which can be edited) until login succeeds.
+### Why I made this? And why do I use it?
+  * Whenever I connect to my hostel wifi network, I am asked to log in to the authentication portal. I was sick of logging in everytime I connect. 
+  * There is only one session allowed per username in the portal and due to obvious unchangable username-password combination, if a person logged in using your credentials, you cannot login using the same username until that person logs out. So, you need to try out any other person's credentials to see if it gets you logged in.
+  * Manually typing in and trying out 5-10 username-password combinations depending upon luck is very tedious. So, I wrote a script that does that automatically and when my password file is completed checking all credentials or login is successful, it exits.
+  * So, I just type in `$ kkh hack` into my terminal and within a few seconds, I am logged in automatically.
+  * You can customize it according to your need and ip addresses. This saves me around 20-30 minutes everyday :-)
+  
     
 ## Features  
   1. Check status :  kkh status
